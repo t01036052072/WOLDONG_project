@@ -3,6 +3,7 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import PrimaryButton from '../../components/PrimaryButton';
 import { Colors } from '../../constants/Colors';
 
+
 export default function OnboardingOne() {
   return (
     <View style={styles.container}>
