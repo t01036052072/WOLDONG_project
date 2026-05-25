@@ -5,6 +5,8 @@ from config.database import init_db
 from app.routers import auth
 from app.routers.child import router as child_router
 from app.routers.invite import router as invite_router
+from app.routers.notification import router as notification_router
+from app.routers.home import router as home_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -45,3 +47,5 @@ async def health():
 
 app.include_router(child_router) 
 app.include_router(invite_router)
+app.include_router(notification_router)
+app.include_router(home_router)

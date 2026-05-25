@@ -8,6 +8,7 @@ from app.models.invite import InviteCode, CompanionRequest, RequestStatus
 from app.middleware.auth import parent_only, companion_only
 from app.utils.response import success, error
 from beanie import PydanticObjectId
+from app.models.notification import Notification, NotificationType
 
 router = APIRouter(prefix="/api/invite", tags=["초대코드"])
 
@@ -132,8 +133,84 @@ async def approve_request(
             invite.is_used = True
             await invite.save()
 
+        # 동행인한테 승인 알림 저장
+        await Notification(
+            recipient_id=req.companion_id,
+            sender_name=user.name,
+            type=NotificationType.request_approved,
+            message=f"{user.name}님이 아동 연결 요청을 승인했습니다.",
+            child_id=req.child_id,
+        ).insert()
+   
+
         return success(None, "동행인 승인이 완료되었습니다")
     else:
         req.status = RequestStatus.rejected
         await req.save()
+
+        # 동행인한테 거절 알림 저장
+        await Notification(
+            recipient_id=req.companion_id,
+            sender_name=user.name,
+            type=NotificationType.request_rejected,
+            message=f"{user.name}님이 아동 연결 요청을 거절했습니다.",
+            child_id=req.child_id,
+        ).insert()
+
         return success(None, "동행인 요청을 거절했습니다")
+    
+# GET /api/invite/companions/{child_id} - 아동별 연동된 동행인 목록 조회 (부모 전용)
+@router.get("/companions/{child_id}")
+async def get_companions(child_id: str, user: User = Depends(parent_only)):
+    try:
+        oid = PydanticObjectId(child_id)
+    except Exception:
+        return error("유효하지 않은 child_id입니다", 400)
+
+    child = await Child.get(oid)
+    if not child:
+        return error("아동 프로필을 찾을 수 없습니다", 404)
+    if child.guardian_id != str(user.id):
+        return error("접근 권한이 없습니다", 403)
+
+    companions = await CompanionRequest.find(
+        CompanionRequest.child_id == child_id,
+        CompanionRequest.status == RequestStatus.approved
+    ).to_list()
+
+    return success([
+        {
+            "request_id": str(c.id),
+            "companion_id": c.companion_id,
+            "companion_name": c.companion_name,
+            "created_at": str(c.created_at)
+        }
+        for c in companions
+    ])
+
+
+# DELETE /api/invite/companions/{child_id}/{companion_id} - 동행인 권한 철회 (부모 전용)
+@router.delete("/companions/{child_id}/{companion_id}")
+async def delete_companion(child_id: str, companion_id: str, user: User = Depends(parent_only)):
+    try:
+        oid = PydanticObjectId(child_id)
+    except Exception:
+        return error("유효하지 않은 child_id입니다", 400)
+
+    child = await Child.get(oid)
+    if not child:
+        return error("아동 프로필을 찾을 수 없습니다", 404)
+    if child.guardian_id != str(user.id):
+        return error("접근 권한이 없습니다", 403)
+
+    companion = await CompanionRequest.find_one(
+        CompanionRequest.child_id == child_id,
+        CompanionRequest.companion_id == companion_id,
+        CompanionRequest.status == RequestStatus.approved
+    )
+    if not companion:
+        return error("연동된 동행인을 찾을 수 없습니다", 404)
+
+    await companion.delete()
+
+    return success(None, "동행인 권한이 철회되었습니다")
