@@ -24,7 +24,7 @@ export default function CompanionSignupEmail() {
       }
 
       setEmailError('');
-      router.push('/signup/comapanion/authenticate' as any);
+      router.push('/signup/companion/authenticate' as any);
     }
 
   return (
