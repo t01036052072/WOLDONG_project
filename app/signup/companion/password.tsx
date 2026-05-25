@@ -1,21 +1,21 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
-    Image,
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableWithoutFeedback,
-    View,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
 import SmallButton from '../../../components/SmallButton';
 import { Colors } from '../../../constants/Colors';
 import { Fonts } from '../../../constants/Fonts';
 
-export default function ParentSignupPassword() {
+export default function CompanionSignupPassword() {
     const [password, setPassword] = useState('');
     const [passwordagain, setPasswordAgain] = useState('');
     const [passwordError, setPasswordError] = useState('');
@@ -49,7 +49,7 @@ export default function ParentSignupPassword() {
         setPasswordError('');
         setAgainError('');
         
-        router.push('/signup/parent/phonenumber' as any);
+        router.push('/signup/companion/phonenumber' as any);
         }
     
     return (

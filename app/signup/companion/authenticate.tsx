@@ -17,7 +17,7 @@ import { Fonts } from '../../../constants/Fonts';
 const CODE_LENGTH = 4;
 const MOCK_AUTH_CODE = '0618';
 
-export default function ParentSignupCodeScreen() {
+export default function CompanionSignupCodeScreen() {
   const [code, setCode] = useState(['', '', '', '']);
   const [error, setError] = useState('');
 
@@ -56,7 +56,7 @@ export default function ParentSignupCodeScreen() {
     }
 
     setError('');
-    router.push('/signup/parent/password' as any);
+    router.push('/signup/companion/password' as any);
   };
 
     // TODO: 여기서 백엔드 인증번호 확인 API 연결
@@ -71,7 +71,7 @@ export default function ParentSignupCodeScreen() {
     inputRefs.current[0]?.focus();
   };
   const handleGoBack = () => {
-    router.replace('/signup/parent/email' as any);
+    router.replace('/signup/companion/email' as any);
   };
 
   return (

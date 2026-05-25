@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import PrimaryButton from '../../components/PrimaryButton';
 import { Colors } from '../../constants/Colors';
-
+import { Fonts } from '../../constants/Fonts';
 
 export default function OnboardingOne() {
   return (
@@ -46,20 +46,20 @@ const styles = StyleSheet.create({
     marginBottom: -30,
   },
   title: {
-    fontFamily: 'EastSeaDokdo_400Regular',
+    fontFamily: Fonts.title,
     fontSize: 60,
     color: Colors.text,
     marginBottom: 20,
   },
   description: {
-    fontFamily: 'NotoSansKR_400Regular',
+    fontFamily: Fonts.body,
     fontSize: 17,
     lineHeight: 30,
     color: Colors.textShadow,
     textAlign: 'center',
   }, 
   boldText: {
-    fontFamily: 'NotoSansKR_700Blod',
+    fontFamily: Fonts.bodyBold,
     fontWeight: '900',
     color: Colors.text,
   },

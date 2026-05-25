@@ -16,7 +16,7 @@ export default function PrimaryButton({ label, onPress }: Props) {
 
 const styles = StyleSheet.create({
   button: {
-    width: '100%',
+    width: '82%',
     height: 52,
     borderRadius: 30,
     backgroundColor: Colors.highlight1,

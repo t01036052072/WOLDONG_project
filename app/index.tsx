@@ -1,24 +1,22 @@
 import { router } from 'expo-router';
-import { useEffect } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text } from 'react-native';
 import { Colors } from '../constants/Colors';
+import { Fonts } from '../constants/Fonts';
 
 export default function SplashScreen() {
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      router.replace('/onboarding/one');
-    }, 4000);
-    return () => clearTimeout(timer);
-  }, []);
+  const handlePress = () => {
+    router.push('/onboarding/one' as any );
+  }
 
   return (
-    <View style={styles.container}>
+    <Pressable style={styles.container} onPress={handlePress}>
       <Image
         source={require('../assets/images/canola_flower_main.png')}
         style={styles.flower}
       />
       <Text style={styles.title}>월동</Text>
-    </View>
+      <Text style={styles.description}>화면을 눌러 시작하기</Text>
+    </Pressable>
   );
 }
 
@@ -28,6 +26,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.pageBg,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 50,
   },
   flower: {
     width: 180,
@@ -35,8 +34,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontFamily: 'EastSeaDokdo_400Regular',
+    fontFamily: Fonts.title,
     fontSize: 80,
     color: Colors.text,
   },
+  description:{
+    fontFamily: Fonts.body,
+    fontSize: 15, 
+    color: Colors.textShadow,
+    marginTop: 40,
+  }
 });

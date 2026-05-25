@@ -5,7 +5,7 @@ import SmallButton from '../../../components/SmallButton';
 import { Colors } from '../../../constants/Colors';
 import { Fonts } from '../../../constants/Fonts';
 
-export default function ParentSignupEmail() {
+export default function CompanionSignupEmail() {
     const [email, setEmail] = useState('');
     const [emailError, setEmailError] = useState('');
   
@@ -24,7 +24,7 @@ export default function ParentSignupEmail() {
       }
 
       setEmailError('');
-      router.push('/signup/parent/authenticate' as any);
+      router.push('/signup/comapanion/authenticate' as any);
     }
 
   return (
