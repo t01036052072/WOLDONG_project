@@ -8,6 +8,7 @@ from app.models.invite import InviteCode, CompanionRequest, RequestStatus
 from app.middleware.auth import parent_only, companion_only
 from app.utils.response import success, error
 from beanie import PydanticObjectId
+from app.models.notification import Notification, NotificationType
 
 router = APIRouter(prefix="/api/invite", tags=["초대코드"])
 
@@ -132,8 +133,28 @@ async def approve_request(
             invite.is_used = True
             await invite.save()
 
+        # 동행인한테 승인 알림 저장
+        await Notification(
+            recipient_id=req.companion_id,
+            sender_name=user.name,
+            type=NotificationType.request_approved,
+            message=f"{user.name}님이 아동 연결 요청을 승인했습니다.",
+            child_id=req.child_id,
+        ).insert()
+   
+
         return success(None, "동행인 승인이 완료되었습니다")
     else:
         req.status = RequestStatus.rejected
         await req.save()
+
+        # 동행인한테 거절 알림 저장
+        await Notification(
+            recipient_id=req.companion_id,
+            sender_name=user.name,
+            type=NotificationType.request_rejected,
+            message=f"{user.name}님이 아동 연결 요청을 거절했습니다.",
+            child_id=req.child_id,
+        ).insert()
+        
         return success(None, "동행인 요청을 거절했습니다")
