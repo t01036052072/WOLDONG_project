@@ -7,20 +7,61 @@ from beanie import PydanticObjectId
 from app.models.user import User
 from app.middleware.auth import parent_only
 from app.utils.response import success, error
-from app.models.child import Child, GenderEnum, RelationEnum, DisabilityTypeEnum, VALID_SYMPTOMS
+from app.models.child import (
+    Child, GenderEnum, RelationEnum, DisabilityTypeEnum,
+    EXPLANATION_STYLES, COMMUNICATION_STYLES, CAUTION_SITUATIONS,
+    DIFFICULT_ENVIRONMENTS, DIFFICULT_PLACES, TRANSITION_DIFFICULTIES,
+    NOTICE_TIMES, CALMING_METHODS
+)
 
 router = APIRouter(prefix="/api/children", tags=["아동 프로필"])
 
 
 # ─── 요청 스키마 ────────────────────────────────────────
 class ChildCreateRequest(BaseModel):
+    # 1단계
     name: str
     gender: GenderEnum
     birth_date: date
     guardian_relation: RelationEnum
+    # 2단계
     disability_type: DisabilityTypeEnum
-    symptoms: list[str]
-    coping_method: str
+    # 3단계
+    explanation_styles: list[str] = []
+    communication_styles: list[str] = []
+    # 4단계
+    caution_situations: list[str] = []
+    required_actions: str = ""
+    # 5단계
+    difficult_environments: list[str] = []
+    difficult_places: list[str] = []
+    # 6단계
+    transition_difficulties: list[str] = []
+    notice_time: str = ""
+    # 7단계
+    calming_methods: list[str] = []
+    avoid_behaviors: str = ""
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "name": "김월동",
+                "gender": "여자아이",
+                "birth_date": "2020-03-15",
+                "guardian_relation": "주양육자",
+                "disability_type": "자폐스펙트럼장애",
+                "explanation_styles": ["한번에 하나씩 말해줘야해요", "반복 설명이 필요해요"],
+                "communication_styles": ["네/아니오로 대답해요"],
+                "caution_situations": ["갑자기 뛰어갈 수 있어요"],
+                "required_actions": "손을 꼭 잡고 이동해주세요",
+                "difficult_environments": ["큰 소리", "밝은 빛"],
+                "difficult_places": ["지하철", "마트"],
+                "transition_difficulties": ["기다리기", "하던 활동 멈추기"],
+                "notice_time": "10분 전",
+                "calming_methods": ["좋아하는 물건", "칭찬 격려"],
+                "avoid_behaviors": "큰 소리로 재촉하지 않기"
+            }
+        }
 
 
 class ChildUpdateRequest(BaseModel):
@@ -29,17 +70,38 @@ class ChildUpdateRequest(BaseModel):
     birth_date: Optional[date] = None
     guardian_relation: Optional[RelationEnum] = None
     disability_type: Optional[DisabilityTypeEnum] = None
-    symptoms: Optional[list[str]] = None
-    coping_method: Optional[str] = None
+    explanation_styles: Optional[list[str]] = None
+    communication_styles: Optional[list[str]] = None
+    caution_situations: Optional[list[str]] = None
+    required_actions: Optional[str] = None
+    difficult_environments: Optional[list[str]] = None
+    difficult_places: Optional[list[str]] = None
+    transition_difficulties: Optional[list[str]] = None
+    notice_time: Optional[str] = None
+    calming_methods: Optional[list[str]] = None
+    avoid_behaviors: Optional[str] = None
 
 
 # ─── 유효성 검사 ────────────────────────────────────────
-def validate_symptoms(symptoms: list[str]):
-    invalid = [s for s in symptoms if s not in VALID_SYMPTOMS]
-    if invalid:
-        return error(f"유효하지 않은 증상 태그: {invalid}", 422)
-    if len(symptoms) != len(set(symptoms)):
-        return error("중복된 증상 태그가 있습니다", 422)
+def validate_fields(payload: dict):
+    checks = [
+        ("explanation_styles", EXPLANATION_STYLES),
+        ("communication_styles", COMMUNICATION_STYLES),
+        ("caution_situations", CAUTION_SITUATIONS),
+        ("difficult_environments", DIFFICULT_ENVIRONMENTS),
+        ("difficult_places", DIFFICULT_PLACES),
+        ("transition_difficulties", TRANSITION_DIFFICULTIES),
+        ("calming_methods", CALMING_METHODS),
+    ]
+    for field, valid_set in checks:
+        values = payload.get(field, [])
+        if values:
+            invalid = [v for v in values if v not in valid_set]
+            if invalid:
+                return error(f"유효하지 않은 {field} 값: {invalid}", 422)
+    if "notice_time" in payload and payload["notice_time"]:
+        if payload["notice_time"] not in NOTICE_TIMES:
+            return error(f"유효하지 않은 notice_time 값입니다", 422)
     return None
 
 
@@ -48,7 +110,8 @@ def validate_symptoms(symptoms: list[str]):
 # POST /api/children
 @router.post("")
 async def create_child(body: ChildCreateRequest, user: User = Depends(parent_only)):
-    err = validate_symptoms(body.symptoms)
+    payload = body.model_dump()
+    err = validate_fields(payload)
     if err:
         return err
 
@@ -59,8 +122,16 @@ async def create_child(body: ChildCreateRequest, user: User = Depends(parent_onl
         birth_date=body.birth_date.isoformat(),
         guardian_relation=body.guardian_relation,
         disability_type=body.disability_type,
-        symptoms=body.symptoms,
-        coping_method=body.coping_method,
+        explanation_styles=body.explanation_styles,
+        communication_styles=body.communication_styles,
+        caution_situations=body.caution_situations,
+        required_actions=body.required_actions,
+        difficult_environments=body.difficult_environments,
+        difficult_places=body.difficult_places,
+        transition_difficulties=body.transition_difficulties,
+        notice_time=body.notice_time,
+        calming_methods=body.calming_methods,
+        avoid_behaviors=body.avoid_behaviors,
     )
     await child.insert()
 
@@ -108,8 +179,16 @@ async def get_child(child_id: str, user: User = Depends(parent_only)):
         "birth_date": child.birth_date,
         "guardian_relation": child.guardian_relation,
         "disability_type": child.disability_type,
-        "symptoms": child.symptoms,
-        "coping_method": child.coping_method,
+        "explanation_styles": child.explanation_styles,
+        "communication_styles": child.communication_styles,
+        "caution_situations": child.caution_situations,
+        "required_actions": child.required_actions,
+        "difficult_environments": child.difficult_environments,
+        "difficult_places": child.difficult_places,
+        "transition_difficulties": child.transition_difficulties,
+        "notice_time": child.notice_time,
+        "calming_methods": child.calming_methods,
+        "avoid_behaviors": child.avoid_behaviors,
         "created_at": str(child.created_at),
         "updated_at": str(child.updated_at),
     })
@@ -129,12 +208,11 @@ async def update_child(child_id: str, body: ChildUpdateRequest, user: User = Dep
     if child.guardian_id != str(user.id):
         return error("접근 권한이 없습니다", 403)
 
-    if body.symptoms is not None:
-        err = validate_symptoms(body.symptoms)
-        if err:
-            return err
-
     update_data = body.model_dump(exclude_none=True)
+    err = validate_fields(update_data)
+    if err:
+        return err
+
     if "birth_date" in update_data:
         update_data["birth_date"] = update_data["birth_date"].isoformat()
     update_data["updated_at"] = datetime.utcnow()
